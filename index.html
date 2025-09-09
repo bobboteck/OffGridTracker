@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>OffGridTracker</title>
+        <!-- Bootstrap 5.3.8 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+html, body {
+height: 100%;
+margin: 0;
+overflow: hidden; /* Blocca lo scroll */
+}
+
+header {
+height: 100px;
+max-height: 100px;
+background-color: #343a40;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+main {
+height: calc(100% - 100px); /* Il resto della pagina */
+}
+
+.colonna {
+height: 100%;
+overflow: auto; /* Se serve lo scroll interno */
+padding: 1rem;
+border: 1px solid #dee2e6;
+}
+
+#map {
+  width: 100%;
+  /*height: 100vh;*/
+  height: -webkit-fill-available;
+}
+
+.textFormat
+{
+    font-family: monospace;
+    font-size: 9pt;
+    height: 700px;
+}
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <header>
+            <h1>Header</h1>
+        </header>
+
+        <!-- Corpo pagina diviso in 3 colonne -->
+        <main class="container-fluid">
+            <div class="row h-100">
+                <div class="col-8 colonna bg-white">
+                    <div id="map"></div>
+                </div>
+                <div class="col-3 colonna bg-light">
+                    <button id="serial_connect" class="btn btn-success" aria-label="Connect button" type="button">Connect</button>
+                    <textarea class="form-control mt-3 mb-3 textFormat" id="receivedData" readonly title="Serial debug"></textarea>
+                </div>
+                <div class="col-1 colonna bg-secondary text-white">Colonna 3</div>
+            </div>
+        </main>
+
+        <!-- Bootstrap JS (opzionale) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="script.js"></script>
+        <script src="serial.js"></script>
+    </body>
+</html>
