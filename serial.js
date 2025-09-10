@@ -222,6 +222,8 @@ async function decodeContent(contentData)
         console.log("SWType:", swtype);
         console.log("Path APRS:", aprsPath);
         console.log("Posizione:", position);
+        let coordinate = decodeCoordinate(position);
+        console.log("Coordinate - Latitudine: " + coordinate.latitudine + " --- Longitudine: " + coordinate.longitudine);
         console.log("Messaggio:", message);
 
         const senderData = stationsData.find(obj => obj.callSign === sender);
@@ -234,7 +236,7 @@ async function decodeContent(contentData)
         {
             console.log("Non trovato");
 
-            const newStation = { call: sender, position: position };
+            const newStation = { callSign: sender, position: { lat: coordinate.latitudine, lon: coordinate.longitudine } };
             stationsData.push(newStation);
             
             console.log(stationsData);
@@ -249,71 +251,40 @@ async function decodeContent(contentData)
 
 function decodeCoordinate(positionData)
 {
+    //"!L9=#_QZ:va";
+    let latString = positionData.substring(2,6);
+    console.log("Latitude string:", latString);
+    
+    let sommaLat = 0;
+    const potenzaLat = latString.length - 1;
 
-}
-
-
-
-
-
-function base91ToInt(str) {
-  const base91Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" +
-                      "!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
-  const base = 91;
-
-  if (typeof str !== 'string' || str.length === 0) {
-    throw new Error("Input non valido: deve essere una stringa non vuota.");
-  }
-
-  let value = 0;
-  for (let i = 0; i < str.length; i++) {
-    const index = base91Chars.indexOf(str[i]);
-    if (index === -1) {
-      throw new Error(`Carattere non valido nella stringa base91: '${str[i]}'`);
+    for(i=0;i<latString.length;i++)
+    {
+        sommaLat += (latString.charCodeAt(i)-33)*91**(potenzaLat-i);
     }
-    value = value * base + index;
-  }
+    console.log("Somma:", sommaLat);
+    let latitude = 90-(sommaLat/380926);
+    console.log("Latitudine:", latitude);
+    
 
-  return value;
-}
 
-function intToBase91(n) {
-  if (!Number.isInteger(n) || n < 0) {
-    throw new Error("Solo numeri interi non negativi sono supportati.");
-  }
+    let lonString = positionData.substring(6,10);
+    console.log("Longitude string:", lonString);
 
-  const base91Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" +
-                      "!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
-  const base = 91;
+    let sommaLon = 0;
+    const potenzaLon = lonString.length - 1;
 
-  if (n === 0) {
-    return base91Chars[0];
-  }
+    for(i=0;i<lonString.length;i++)
+    {
+        sommaLon += (lonString.charCodeAt(i)-33)*91**(potenzaLon-i);
+    }
+    console.log("Somma:", sommaLon);
+    let longitude = -180+(sommaLon/190463);
+    console.log("Longitude:", longitude);
 
-  let result = '';
-  while (n > 0) {
-    const remainder = n % base;
-    result = base91Chars[remainder] + result;
-    n = Math.floor(n / base);
-  }
-
-  return result;
+    return { latitudine: latitude, longitudine: longitude };
 }
 
 
-const original = 123456789;
-const encoded = intToBase91(original);
-const decoded = base91ToInt(encoded);
-
-console.log(`Originale: ${original}`);
-console.log(`Codificato: ${encoded}`);
-console.log(`Decodificato: ${decoded}`);
-
-console.log(`LAT: ${base91ToInt("L9@y")}`);
-console.log(`LON: ${base91ToInt(">Q]w")}`);
-
-console.log(`LAT: ${base91ToInt("L9=#")}`);
-console.log(`LON: ${base91ToInt("_QZ:")}`);
-
-const lat = (base91ToInt("!L9@") / 1e7) - 90; // se c'è offset +90
-console.log(`LAT2: ${lat}`);
+//TODO: TEST - remove it when finish
+decodeCoordinate("!L9=#_QZ:va");
