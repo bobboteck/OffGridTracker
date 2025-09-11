@@ -299,7 +299,3 @@ function decodeCoordinate(positionData)
 
     return { latitudine: latitude, longitudine: longitude };
 }
-
-
-//TODO: TEST - remove it when finish
-decodeCoordinate("!L9=#_QZ:va");

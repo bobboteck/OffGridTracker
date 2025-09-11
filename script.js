@@ -1,7 +1,7 @@
 // Inizializza la mappa
 const map = L.map('map', {
   center: [41.8986, 12.4931], // Roma
-  zoom: 8,
+  zoom: 10,
   zoomControl: true,
   attributionControl: true
 });
