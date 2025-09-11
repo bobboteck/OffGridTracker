@@ -47,12 +47,33 @@ border: 1px solid #dee2e6;
     font-size: 9pt;
     height: 700px;
 }
+
+#heardStations {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.customMarker
+{
+    width: auto !important;
+}
+
+.customMarkerContainer
+{
+    text-align: center;
+}
+
+.customMarkerText
+{
+    font-size: 12px;
+    text-wrap-mode: nowrap;
+}
         </style>
     </head>
     <body>
         <!-- Header -->
         <header>
-            <h1>Header</h1>
+            <h1>Off Grid Tracker</h1>
         </header>
 
         <!-- Corpo pagina diviso in 3 colonne -->
@@ -65,7 +86,12 @@ border: 1px solid #dee2e6;
                     <button id="serial_connect" class="btn btn-success" aria-label="Connect button" type="button">Connect</button>
                     <textarea class="form-control mt-3 mb-3 textFormat" id="receivedData" readonly title="Serial debug"></textarea>
                 </div>
-                <div class="col-1 colonna bg-secondary text-white">Colonna 3</div>
+                <div class="col-1 colonna bg-secondary text-white">
+                    Stazioni ascoltate
+                    <div>
+                        <ul id="heardStations"></ul>
+                    </div>
+                </div>
             </div>
         </main>
 

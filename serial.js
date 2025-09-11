@@ -37,9 +37,6 @@ serialConnectButton.addEventListener('click', async () =>
                 serialConnectButton.innerText = "Disconnect";
                 serialConnectButton.classList.remove("btn-success");
                 serialConnectButton.classList.add("btn-outline-success");
-                // baudRateSelection.disabled = true;
-                // textToSend.disabled = false;
-                // sendButton.disabled = false;
 
                 readUntilNotClose();
             });
@@ -60,9 +57,6 @@ serialConnectButton.addEventListener('click', async () =>
             serialConnectButton.innerText = "Connect";
             serialConnectButton.classList.add("btn-success");
             serialConnectButton.classList.remove("btn-outline-success");
-            // baudRateSelection.disabled = false;
-            // textToSend.disabled = true;
-            // sendButton.disabled = true;
         }
     }
 });
@@ -239,6 +233,27 @@ async function decodeContent(contentData)
             const newStation = { callSign: sender, position: { lat: coordinate.latitudine, lon: coordinate.longitudine } };
             stationsData.push(newStation);
             
+            //L.marker([coordinate.latitudine, coordinate.longitudine]).addTo(map).bindPopup(sender);
+            let marker = L.marker([coordinate.latitudine, coordinate.longitudine],
+            {
+                icon: L.divIcon({
+                    className: "customMarker",
+                    html: `
+                    <div class="customMarkerContainer">
+                        <img src="./marker-icon.png"><br>
+                        <span class="customMarkerText">${sender}</span>
+                    </div>`,
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]  // punta del marker
+                })
+            }).addTo(map);
+            console.log(marker);
+
+            
+            const newStationLi = document.createElement("li");
+            newStationLi.textContent = sender;
+            document.getElementById("heardStations").appendChild(newStationLi);
+
             console.log(stationsData);
         }
 
