@@ -1,3 +1,4 @@
 ## Custom ignore configuration
 
 tiles/*
+!tiles/tiles-info.md
