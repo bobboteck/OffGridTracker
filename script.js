@@ -8,7 +8,7 @@ const map = L.map('map', {
 
 // Carica i tile da locale (es. /tiles/{z}/{x}/{y}.png)
 L.tileLayer('./tiles/{z}/{x}/{y}.png', {
-  maxZoom: 18,
+  maxZoom: 16,
   minZoom: 8,
   tileSize: 256,
   errorTileUrl: '', // opzionale: tile di fallback
