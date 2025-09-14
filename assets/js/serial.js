@@ -240,7 +240,7 @@ async function decodeContent(contentData)
                     className: "customMarker",
                     html: `
                     <div class="customMarkerContainer">
-                        <img src="./marker-icon.png"><br>
+                        <img src="./icon-marker.png"><br>
                         <span class="customMarkerText">${sender}</span>
                     </div>`,
                     iconSize: [25, 41],
