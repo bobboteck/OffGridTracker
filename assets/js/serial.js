@@ -265,8 +265,9 @@ async function decodeContent(contentData)
             console.log("Non trovato");
 
             let iconChar = decodeIcon(position);
+            let receivedFrom = decodeAprsPath(aprsPath);
 
-            const newStation = { callSign: sender, mapPosition: { lat: coordinate.latitudine, lon: coordinate.longitudine }, icon: iconChar };
+            const newStation = { callSign: sender, mapPosition: { lat: coordinate.latitudine, lon: coordinate.longitudine }, icon: iconChar, from: receivedFrom };
             stationsData.push(newStation);
             
             //L.marker([coordinate.latitudine, coordinate.longitudine]).addTo(map).bindPopup(sender);
@@ -277,7 +278,7 @@ async function decodeContent(contentData)
                     html: `
                     <div class="customMarkerContainer">
                         <img src="./icons/icon-${iconChar}-24-24.png"><br>
-                        <span class="customMarkerText">${sender}</span>
+                        <span class="${receivedFrom == "" ? "customMarkerTextDirect" : "customMarkerText"}">${sender}</span>
                     </div>`,
                     iconSize: [24, 24],
                     iconAnchor: [12, 24]  // punta del marker
@@ -341,10 +342,22 @@ function decodeIcon(positionData)
     let iconChar = positionData.charAt(positionData.length-1);
 
     //TODO: Find a better solution :D
-    if(iconChar != 'a' && iconChar != '&')
+    if(iconChar != 'a' && iconChar != '&' && iconChar != '#' && iconChar != '_')
     {
         iconChar = "default";
     }
 
     return iconChar;
+}
+
+function decodeAprsPath(pathAprs)
+{
+    let repeter = "";
+
+    if(pathAprs.charAt(pathAprs.length-1) == '*')
+    {
+        repeter = pathAprs.substring(0, pathAprs.length-1);
+    }
+
+    return repeter;
 }
