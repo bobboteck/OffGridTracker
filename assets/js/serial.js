@@ -264,7 +264,9 @@ async function decodeContent(contentData)
         {
             console.log("Non trovato");
 
-            const newStation = { callSign: sender, position: { lat: coordinate.latitudine, lon: coordinate.longitudine } };
+            let iconChar = decodeIcon(position);
+
+            const newStation = { callSign: sender, mapPosition: { lat: coordinate.latitudine, lon: coordinate.longitudine }, icon: iconChar };
             stationsData.push(newStation);
             
             //L.marker([coordinate.latitudine, coordinate.longitudine]).addTo(map).bindPopup(sender);
@@ -274,11 +276,11 @@ async function decodeContent(contentData)
                     className: "customMarker",
                     html: `
                     <div class="customMarkerContainer">
-                        <img src="./icons/icon-marker.png"><br>
+                        <img src="./icons/icon-${iconChar}-24-24.png"><br>
                         <span class="customMarkerText">${sender}</span>
                     </div>`,
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41]  // punta del marker
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24]  // punta del marker
                 })
             }).addTo(map);
             console.log(marker);
@@ -332,4 +334,17 @@ function decodeCoordinate(positionData)
     console.log("Longitude:", longitude);
 
     return { latitudine: latitude, longitudine: longitude };
+}
+
+function decodeIcon(positionData)
+{
+    let iconChar = positionData.charAt(positionData.length-1);
+
+    //TODO: Find a better solution :D
+    if(iconChar != 'a' && iconChar != '&')
+    {
+        iconChar = "default";
+    }
+
+    return iconChar;
 }
