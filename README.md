@@ -30,27 +30,35 @@ The USB connection is seen as a serial port, which the program uses to send the 
 
 The application is entirely built using HTML and Javascript, all the libraries used (leaflet, bootstrap) are downloaded locally to work offline, but to be able to display the map tiles it is necessary that everything is called from a Web Server.
 
-#### Windows
+### On Windows
 
 For Windows, I found [Rebex Tiny Web Server](https://www.rebex.net/tiny-web-server/), which is free, lightweight, and easy to set up. Just download the ZIP file and unzip it (no installation required) in the desired location. The application files should be placed in the **wwwroot** folder.
 
-#### Linux
+After configuring the web server, you can **clone** the entire repository into the server's wwwroot folder.
 
-....
+```shell
+git clone https://github.com/bobboteck/OffGridTracker.git
+```
 
-### Clone this repository
-
-After configuring the web server, you can clone the entire repository into the server's wwwroot folder. Below is an example image of my setup.
+Below is an example image of my setup.
 
 ![OGT-Esempio-path](/misc/OGT-Esempio-path.png)
 
+### On Linux
+
+For Linux you can use Python as Web Server, you can simple clone the repository.
+
+```shell
+git clone https://github.com/bobboteck/OffGridTracker.git
+```
+
+> Tested with Ubuntu 24 (thanks to [Gianmarco](https://github.com/Gianmarco-Maisano)) and partially on an old old Raspberry Pi
+
 ### Download the Tiles PNG files
 
-Please note that to have the maps available offline and locally, they must be downloaded to the **wwwroot** folder on the web server. Since they are all images, they take up disk space. For example, the portion of the map visible in the first image I used, which allows a zoom range of 10 to 16, takes up about 90 MB of disk space.
+Please note that to have the maps available offline and locally, they must be downloaded to the **tiles** folder on the folder of project. Since they are all images, they take up disk space. For example, the portion of the map visible in the first image I used, which allows a zoom range of 10 to 16, takes up about 90 MB of disk space.
 
 To download the map tiles locally I used the Python-based [OfflineMapDownloader](https://github.com/0015/OfflineMapDownloader) project, which allows you to select a portion of the map and choose the zoom levels, then it will automatically take care of downloading all the images to the correct folders.
-
-The folders containing the images will be saved in the path "wwwroot/OffGridTracker/tiles/".
 
 ### Start the server and use the application
 
@@ -69,7 +77,25 @@ For Windows follow these steps:
 
 #### Start on Linux
 
-...
+For Linux follow these steps:
+
+- Go into the project folder.
+
+```shell
+cd OffGridTracker
+```
+
+- Run the server
+
+```shell
+python3 -m http.server 8000
+```
+
+- Open the browser and insert this url
+
+```http
+http://localhost:8000
+```
 
 ## Come contribuire
 
