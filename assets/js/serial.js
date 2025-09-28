@@ -181,18 +181,19 @@ async function readUntilNotClose()
                 const match = dataReceived.match(pattern);
                 if (match)
                 {
-                    const fullMessage = match[0]; // Il messaggio completo
-                    const contenuto = match[1];   // Tutto quello tra <--- e / FreqErr
-                    const rssi = parseInt(match[2]);
-                    const snr = parseFloat(match[3]);
-                    const freqErr = parseInt(match[4]); // Il valore di FreqErr
-            
-                    console.log("Messaggio completo:", fullMessage);
-                    console.log("Contenuto:", contenuto);
-                    decodeContent(contenuto);
-                    console.log("RSSI:", rssi);
-                    console.log("SNR:", snr);
-                    console.log("FreqErr:", freqErr);
+                    // const fullMessage = match[0]; // Il messaggio completo
+                    // const contenuto = match[1];   // Tutto quello tra <--- e / FreqErr
+                    // const rssi = parseInt(match[2]);
+                    // const snr = parseFloat(match[3]);
+                    // const freqErr = parseInt(match[4]); // Il valore di FreqErr
+                    // console.log("Messaggio completo:", fullMessage);
+                    // console.log("Contenuto:", contenuto);
+                    // decodeContent(contenuto);
+                    // console.log("RSSI:", rssi);
+                    // console.log("SNR:", snr);
+                    // console.log("FreqErr:", freqErr);
+
+                    decodeData(match);
             
                     // Rimuovi il messaggio processato dal buffer
                     dataReceived = dataReceived.slice(dataReceived.indexOf(fullMessage) + fullMessage.length);
@@ -231,11 +232,31 @@ navigator.serial.addEventListener("disconnect", (event) =>
 
 
 
+function decodeData(dataMatch)
+{
+    const fullMessage = dataMatch[0]; // Il messaggio completo
+    const contenuto = dataMatch[1];   // Tutto quello tra <--- e / FreqErr
+    const rssi = parseInt(dataMatch[2]);
+    const snr = parseFloat(dataMatch[3]);
+    const freqErr = parseInt(dataMatch[4]); // Il valore di FreqErr
+
+    console.log("Messaggio completo:", fullMessage);
+    console.log("Contenuto:", contenuto);
+    decodeContent(contenuto);
+    console.log("RSSI:", rssi);
+    console.log("SNR:", snr);
+    console.log("FreqErr:", freqErr);
+}
+
 
 async function decodeContent(contentData)
 {
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+),([A-Z0-9\-]+):(![^ ]+)\s+(.*)$/m;
-    const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(![^ ]+)\s+(.*)$/;
+    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(![^ ]+)\s+(.*)$/;
+    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(!|=)([^ ]+)(\s+(.*))$/
+    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
+    const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9\-]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
+
     let matchContent = contentData.match(patternConent);
 
     if (matchContent)
