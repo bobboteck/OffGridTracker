@@ -131,8 +131,6 @@ async function readUntilNotClose()
             reader = port.readable.getReader();
 
             let dataReceived = "";
-            //const pattern = /<--- (.*?) \/ FreqErr:([+-]?\d+)\)/s;
-            //const pattern = /<--- LoRa Packet Rx : (.*?) \/ FreqErr:([+-]?\d+)\)/s;
             const pattern = /<--- LoRa Packet Rx : (.*?)\s*\(RSSI:([+-]?\d+)\s*\/\s*SNR:([+-]?\d+(?:\.\d+)?)\s*\/\s*FreqErr:([+-]?\d+)\)/;
 
             // Listen to data coming from the serial device.
@@ -181,18 +179,7 @@ async function readUntilNotClose()
                 const match = dataReceived.match(pattern);
                 if (match)
                 {
-                    // const fullMessage = match[0]; // Il messaggio completo
-                    // const contenuto = match[1];   // Tutto quello tra <--- e / FreqErr
-                    // const rssi = parseInt(match[2]);
-                    // const snr = parseFloat(match[3]);
-                    // const freqErr = parseInt(match[4]); // Il valore di FreqErr
-                    // console.log("Messaggio completo:", fullMessage);
-                    // console.log("Contenuto:", contenuto);
-                    // decodeContent(contenuto);
-                    // console.log("RSSI:", rssi);
-                    // console.log("SNR:", snr);
-                    // console.log("FreqErr:", freqErr);
-
+                    // If the string match with pattern start decoding
                     decodeData(match);
             
                     // Rimuovi il messaggio processato dal buffer
@@ -231,7 +218,10 @@ navigator.serial.addEventListener("disconnect", (event) =>
 });
 
 
-
+/**
+ * Decode all data sended via serial port from the gateway
+ * @param {*} dataMatch 
+ */
 function decodeData(dataMatch)
 {
     const fullMessage = dataMatch[0]; // Il messaggio completo
@@ -242,14 +232,20 @@ function decodeData(dataMatch)
 
     console.log("Messaggio completo:", fullMessage);
     console.log("Contenuto:", contenuto);
-    decodeContent(contenuto);
     console.log("RSSI:", rssi);
     console.log("SNR:", snr);
     console.log("FreqErr:", freqErr);
+
+    decodeAPRSData(contenuto);   //TODO: Questo deve ritornare i dati decodificati
+
+    // TODO: Spostare qui la logica di gestione dei dati JSON
 }
 
-
-async function decodeContent(contentData)
+/**
+ * Decode APRS Data
+ * @param {*} aprsData 
+ */
+async function decodeAPRSData(aprsData)
 {
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+),([A-Z0-9\-]+):(![^ ]+)\s+(.*)$/m;
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(![^ ]+)\s+(.*)$/;
@@ -257,23 +253,29 @@ async function decodeContent(contentData)
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
     const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9\-]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
 
-    let matchContent = contentData.match(patternConent);
+    let matchAprs = aprsData.match(patternConent);
 
-    if (matchContent)
+    if (matchAprs)
     {
-        const sender = matchContent[1];     // Original sender of message
-        const swtype = matchContent[2];     // software type???
-        const aprsPath = matchContent[3];   // APRS Path
-        const position = matchContent[4];   // Compressed position
-        const message = matchContent[5];    // Message
+        const sender = matchAprs[1];     // Original sender of message
+        const swtype = matchAprs[2];     // software type???
+        const aprsPath = matchAprs[3];   // APRS Path
+        const payload = matchAprs[4];   // Payload: Compressed position, other data and message
+        //const message = matchAprs[5];    // Message
 
         console.log("Mittente:", sender);
         console.log("SWType:", swtype);
         console.log("Path APRS:", aprsPath);
-        console.log("Posizione:", position);
-        let coordinate = decodeCoordinate(position);
+        console.log("Payload:", payload);
+        let coordinate = decodeCoordinate(payload);
         console.log("Coordinate - Latitudine: " + coordinate.latitudine + " --- Longitudine: " + coordinate.longitudine);
-        console.log("Messaggio:", message);
+        //console.log("Messaggio:", message);
+
+
+        // TODO: Sostituire il metodo decodeCoordinate con decodePayload
+        let decoded = decodePayload(payload);
+        console.log("decoded: ", decoded);
+
 
         const senderData = stationsData.find(obj => obj.callSign === sender);
 
@@ -285,7 +287,7 @@ async function decodeContent(contentData)
         {
             console.log("Non trovato");
 
-            let iconChar = decodeIcon(position);
+            let iconChar = decodeIcon(payload);
             let receivedFrom = decodeAprsPath(aprsPath);
 
             const newStation = { callSign: sender, mapPosition: { lat: coordinate.latitudine, lon: coordinate.longitudine }, icon: iconChar, from: receivedFrom };
@@ -381,4 +383,80 @@ function decodeAprsPath(pathAprs)
     }
 
     return repeter;
+}
+
+function decodePayload(payload)
+{
+    //  =/9;T)Q\qQ[>jQ  --- Tracker
+    //  !L9;WjQ]&Da     --- Gateway
+    
+    const dataType = payload.substring(0,1);
+    let overlay = "";
+    let simbleTable = "";
+    const latitude = decodeLatitude(payload.substring(2,6));
+    const longitude = decodeLongitude(payload.substring(6,10));
+    const icon = payload.substring(10,11);
+    let direction = "";
+    let speed = "";
+    let altitude = "";
+    let compressionType = "";
+    let message = "";
+
+    if(dataType === "!")
+    {
+        // Gateway
+        overlay = payload.substring(1,2);
+        message = payload.substring(12,payload.length);
+    }
+    else if(dataType === "=")
+    {
+        // Tracker
+        simbleTable = payload.substring(1,2);
+        message = payload.substring(14,payload.length);
+    }
+    else
+    {
+        console.log("Not managed data type: ", payload);
+    }
+
+    return { dataType: dataType, overlay: overlay, 
+        simbleTable: simbleTable, latitude: latitude, longitude: longitude, icon: icon, 
+        direction: direction, speed: speed, altitude: altitude, compressionType: compressionType, message: message };
+}
+
+function decodeLatitude(codedLatitude)
+{
+    //let latString = positionData.substring(2,6);
+    //console.log("Latitude string:", codedLatitude);
+    let resultLatitude = 0;
+    let sommaLat = 0;
+    const potenzaLat = codedLatitude.length - 1;
+
+    for(i=0;i<codedLatitude.length;i++)
+    {
+        sommaLat += (codedLatitude.charCodeAt(i)-33)*91**(potenzaLat-i);
+    }
+
+    //console.log("Somma:", sommaLat);
+    resultLatitude = 90-(sommaLat/380926);
+    //console.log("Latitudine:", latitude);
+    return resultLatitude;
+}
+
+function decodeLongitude(codedLongitude)
+{
+    //let lonString = positionData.substring(6,10);
+    //console.log("Longitude string:", codedLongitude);
+    let resultLongitude = 0;
+    let sommaLon = 0;
+    const potenzaLon = codedLongitude.length - 1;
+
+    for(i=0;i<codedLongitude.length;i++)
+    {
+        sommaLon += (codedLongitude.charCodeAt(i)-33)*91**(potenzaLon-i);
+    }
+    //console.log("Somma:", sommaLon);
+    resultLongitude = -180+(sommaLon/190463);
+    //console.log("Longitude:", longitude);
+    return resultLongitude;
 }

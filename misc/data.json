@@ -1,0 +1,61 @@
+{
+    "received":
+    [
+        {
+            "callSign": "callSign of station received",
+            "swhw": "APLRG1",
+            "dataType": "! or =",
+            "overlay": "overlay char",
+            "simbleTable": "primary or secondary simble table",
+            "data":
+            [
+                {
+                    "from": "received from, empty if direct",
+                    "payload":
+                    {
+                        "lat": "latitude",
+                        "lon": "longitude",
+                        "icon": "iconChar",
+                        "direction": "",
+                        "speed": "",
+                        "altitude": "",
+                        "compressionType": "",
+                        "messagge": "optional messagge received"
+                    },
+                    "rssi": -1,
+                    "snr": 0.0,
+                    "frequencyError": -1,
+                    "time": 1759086584
+                }
+            ]
+        },
+        {
+            "callSign": "IU0PHY",
+            "swhw": "APLRT1",
+            "dataType": "=",
+            "overlay": "",
+            "simbleTable": "/",
+            "data":
+            [
+                {
+                    "from": "",
+                    "payload":
+                    {
+                        "lat": "coordinate.latitudine",
+                        "lon": "coordinate.longitudine",
+                        "icon": "iconChar",
+                        "direction": "",
+                        "speed": "",
+                        "altitude": "",
+                        "compressionType": "",
+                        "messagge": "Text message"
+                    },
+                    "rssi": -79,
+                    "snr": 13.00,
+                    "frequencyError": -2242,
+                    "time": 1759086584
+                }
+            ]
+        }
+    ]
+}
