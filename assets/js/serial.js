@@ -40,6 +40,7 @@ let connected = false;
 let port;
 let reader;
 const stationsData = [];
+const receivedJson = { "received": [] };
 
 serialConnectButton.disabled = true;
 
@@ -236,17 +237,89 @@ function decodeData(dataMatch)
     console.log("SNR:", snr);
     console.log("FreqErr:", freqErr);
 
-    decodeAPRSData(contenuto);   //TODO: Questo deve ritornare i dati decodificati
+    let aprsPath = decodeAPRSPath(contenuto);   //TODO: Questo deve ritornare i dati decodificati
+
+    // TODO: Sostituire il metodo decodeCoordinate con decodePayload
+    let aprsPayload = decodePayload(aprsPath.payload);
+    console.log("Payload decoded: ", aprsPayload);
 
     // TODO: Spostare qui la logica di gestione dei dati JSON
+
+    const callSignReceived = receivedJson.received.find(s=>s.callSign === aprsPath.callSign);
+
+    if(callSignReceived)
+    {
+        // Nominativo già presente, quindi aggiungere solo le informazioni nella sezione "data"
+        const newData =
+        {
+            "from": aprsPath.from,
+            "payload":
+            {
+                "lat": aprsPayload.latitude,
+                "lon": aprsPayload.longitude,
+                "icon": aprsPayload.icon,
+                "direction": aprsPayload.direction,
+                "speed": aprsPayload.speed,
+                "altitude": aprsPayload.altitude,
+                "compressionType": aprsPayload.compressionType,
+                "messagge": aprsPayload.message
+            },
+            "rssi": rssi,
+            "snr": snr,
+            "frequencyError": freqErr,
+            "time": Date.now()
+        };
+
+        callSignReceived.data.push(newData);
+
+        console.log("Received JSON: ", receivedJson);
+    }
+    else
+    {
+        // Nominativo non presente, inserire tutti i dati
+        const newStationData =
+        {
+            "callSign": aprsPath.callSign,
+            "swhw": aprsPath.swhw,
+            "dataType": aprsPayload.dataType,
+            "overlay": aprsPayload.overlay,
+            "simbleTable": aprsPayload.simbleTable,
+            "data":
+            [
+                {
+                    "from": aprsPath.from,
+                    "payload":
+                    {
+                        "lat": aprsPayload.latitude,
+                        "lon": aprsPayload.longitude,
+                        "icon": aprsPayload.icon,
+                        "direction": aprsPayload.direction,
+                        "speed": aprsPayload.speed,
+                        "altitude": aprsPayload.altitude,
+                        "compressionType": aprsPayload.compressionType,
+                        "messagge": aprsPayload.message
+                    },
+                    "rssi": rssi,
+                    "snr": snr,
+                    "frequencyError": freqErr,
+                    "time": Date.now()
+                }
+            ]
+        };
+
+        receivedJson.received.push(newStationData);
+
+        console.log("Received JSON: ", receivedJson);
+    }
 }
 
 /**
  * Decode APRS Data
  * @param {*} aprsData 
  */
-async function decodeAPRSData(aprsData)
+function decodeAPRSPath(aprsData)
 {
+    let result = undefined;
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+),([A-Z0-9\-]+):(![^ ]+)\s+(.*)$/m;
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(![^ ]+)\s+(.*)$/;
     //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(!|=)([^ ]+)(\s+(.*))$/
@@ -317,11 +390,24 @@ async function decodeAPRSData(aprsData)
             console.log(stationsData);
         }
 
+
+        /**********************************************/
+        // New object manage
+        result = 
+        {
+            "callSign": sender,
+            "swhw": swtype,
+            "from": aprsPath,
+            "payload": payload
+        };
+        /**********************************************/
     }
     else
     {
         console.log("No CONTENT decode!");
     }
+
+    return result;
 }
 
 function decodeCoordinate(positionData)
