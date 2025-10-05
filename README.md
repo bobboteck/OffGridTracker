@@ -93,7 +93,7 @@ python3 -m http.server 8000
 
 - Open the browser and insert this url
 
-```http
+```txt
 http://localhost:8000
 ```
 
