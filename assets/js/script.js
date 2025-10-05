@@ -1,14 +1,15 @@
 /*
  * Name          : script.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 14.09.2025
- * Revision      : 1.1.6
+ * Last modified : 05.10.2025
+ * Revision      : 0.1.0
  *
  * This file is part of : OffGridTracker project [https://github.com/bobboteck/OffGridTracker/]
  *
  * Modification History:
  * Date         Version     Modified By     Description
  * 2025-09-14   0.0.1       Roberto D'Amico First version
+ * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  * 
  * The MIT License (MIT)
  *

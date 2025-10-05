@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <!--
+ @author       : Roberto D'Amico (Bobboteck - IU0PHY)
+ Last modified : 05.10.2025
+ Revision      : 0.1.0
+
+ Modification History:
+ Date         Version     Modified By     Description
+ 2025-09-14   0.0.1       Roberto D'Amico First version
+ 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
+
  The MIT License (MIT)
 
  This file is part of the OffGridTracker project [https://github.com/bobboteck/OffGridTracker/].
@@ -45,7 +54,7 @@ background-color: #343a40;
 color: white;
 display: flex;
 align-items: center;
-justify-content: flex-start;
+justify-content: space-between;
 padding-left: 20px;
 }
 
@@ -109,19 +118,22 @@ border: 1px solid #dee2e6;
         <!-- Header -->
         <header>
             <h1>Off Grid Tracker - LoRa APRS</h1>
+            <div style="padding-right: 20px;">
+                <button id="serial_connect" class="btn btn-success" aria-label="Connect button" type="button">Connect</button>
+            </div>
         </header>
 
         <!-- Corpo pagina diviso in 3 colonne -->
         <main class="container-fluid">
             <div class="row h-100">
-                <div class="col-8 colonna bg-white">
+                <div class="col-7 colonna bg-white">
                     <div id="map"></div>
                 </div>
                 <div class="col-3 colonna bg-light">
-                    <button id="serial_connect" class="btn btn-success" aria-label="Connect button" type="button">Connect</button>
+                    
                     <textarea class="form-control mt-3 mb-3 textFormat" id="receivedData" readonly title="Serial debug"></textarea>
                 </div>
-                <div class="col-1 colonna bg-secondary text-white">
+                <div class="col-2 colonna bg-secondary text-white">
                     Stazioni ascoltate
                     <div>
                         <ul id="heardStations"></ul>

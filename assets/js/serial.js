@@ -1,12 +1,13 @@
 /*
  * Name          : serial.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 14.09.2025
- * Revision      : 1.1.6
+ * Last modified : 05.10.2025
+ * Revision      : 0.1.0
  *
  * Modification History:
  * Date         Version     Modified By     Description
  * 2025-09-14   0.0.1       Roberto D'Amico First version
+ * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  * 
  * The MIT License (MIT)
  *
@@ -34,13 +35,11 @@
 
 const serialConnectButton = document.getElementById("serial_connect");
 const baudRate = 115200;
-const autoScroll = true;
+const receivedJson = { "received": [] };
 
 let connected = false;
 let port;
 let reader;
-const stationsData = [];
-const receivedJson = { "received": [] };
 
 serialConnectButton.disabled = true;
 
@@ -96,6 +95,16 @@ serialConnectButton.addEventListener('click', async () =>
     }
 });
 
+navigator.serial.addEventListener("connect", (event) => 
+{
+    console.log("Event connected device");
+});
+  
+navigator.serial.addEventListener("disconnect", (event) => 
+{
+    console.log("Event disconnect device");
+});
+
 /**
  * Create a connection with selected serial port
  */
@@ -103,18 +112,18 @@ async function serialConnect()
 {
     try
     {
-        console.log("serialConnect ...");
+        console.log("SerialConnect ...");
 
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: baudRate });
 
         connected = true;
 
-        console.log("Port opened!");
+        console.log("... Port opened!");
     }
     catch(error)
     {
-        console.log(error);
+        console.log("SerialConnect - ERROR: ", error);
     }
 }
 
@@ -147,17 +156,14 @@ async function readUntilNotClose()
                 }
                 else
                 {
-                    
                     // Show in text area each char received
                     value.forEach(element => 
                     {
                         // The sequence of chars 13 and 10, insert a blank row in text area, this control is for skipping the 13 char and not have the blank row
                         if(element !== 13)
                         {
-                            //console.log(element);
                             dataReceived = dataReceived + String.fromCharCode(element);
                             receivedData.value = receivedData.value + String.fromCharCode(element);
-                            //console.log(dataReceived);
                         }
                         else
                         {
@@ -167,24 +173,19 @@ async function readUntilNotClose()
                         }
                     });
 
-                    // Check if Autoscroll is selected or not
-                    if(autoScroll)
-                    {
-                        // Auto scroll down
-                        receivedData.scrollTop = receivedData.scrollHeight;
-                    }
+                    // Auto scroll down
+                    receivedData.scrollTop = receivedData.scrollHeight;
                 }
 
-                console.log("Into while true");
-
+                // Check if data received match with pattern
                 const match = dataReceived.match(pattern);
                 if (match)
                 {
                     // If the string match with pattern start decoding
-                    decodeData(match);
+                    decodeReceivedData(match);
             
                     // Rimuovi il messaggio processato dal buffer
-                    dataReceived = dataReceived.slice(dataReceived.indexOf(fullMessage) + fullMessage.length);
+                    dataReceived = dataReceived.slice(dataReceived.indexOf(match[0]) + match[0].length);
                 }
                 else
                 {
@@ -208,43 +209,24 @@ async function readUntilNotClose()
     console.log("Disconnesso!");
 }
 
-navigator.serial.addEventListener("connect", (event) => 
-{
-    console.log("Event connected device");
-});
-  
-navigator.serial.addEventListener("disconnect", (event) => 
-{
-    console.log("Event disconnect device");
-});
-
 
 /**
  * Decode all data sended via serial port from the gateway
  * @param {*} dataMatch 
  */
-function decodeData(dataMatch)
+function decodeReceivedData(dataMatch)
 {
-    const fullMessage = dataMatch[0]; // Il messaggio completo
-    const contenuto = dataMatch[1];   // Tutto quello tra <--- e / FreqErr
+    const contenuto = dataMatch[1];         // Tutto quello tra <--- e / FreqErr
     const rssi = parseInt(dataMatch[2]);
     const snr = parseFloat(dataMatch[3]);
     const freqErr = parseInt(dataMatch[4]); // Il valore di FreqErr
 
-    console.log("Messaggio completo:", fullMessage);
-    console.log("Contenuto:", contenuto);
-    console.log("RSSI:", rssi);
-    console.log("SNR:", snr);
-    console.log("FreqErr:", freqErr);
+    // Decodifica mittente e path
+    const aprsPath = decodeAPRSPath(contenuto);
+    // Decodifica il payload del messaggio ricevuto
+    const aprsPayload = decodePayload(aprsPath.payload);
 
-    let aprsPath = decodeAPRSPath(contenuto);   //TODO: Questo deve ritornare i dati decodificati
-
-    // TODO: Sostituire il metodo decodeCoordinate con decodePayload
-    let aprsPayload = decodePayload(aprsPath.payload);
-    console.log("Payload decoded: ", aprsPayload);
-
-    // TODO: Spostare qui la logica di gestione dei dati JSON
-
+    // Cerca il nominativo per vedere se è già presente nei dati
     const callSignReceived = receivedJson.received.find(s=>s.callSign === aprsPath.callSign);
 
     if(callSignReceived)
@@ -252,7 +234,7 @@ function decodeData(dataMatch)
         // Nominativo già presente, quindi aggiungere solo le informazioni nella sezione "data"
         const newData =
         {
-            "from": aprsPath.from,
+            "from": utilityPathFrom(aprsPath.from),
             "payload":
             {
                 "lat": aprsPayload.latitude,
@@ -272,7 +254,9 @@ function decodeData(dataMatch)
 
         callSignReceived.data.push(newData);
 
-        console.log("Received JSON: ", receivedJson);
+        addStationOnMap(callSignReceived);
+
+        console.log("Received new data JSON: ", receivedJson);
     }
     else
     {
@@ -287,7 +271,7 @@ function decodeData(dataMatch)
             "data":
             [
                 {
-                    "from": aprsPath.from,
+                    "from": utilityPathFrom(aprsPath.from),
                     "payload":
                     {
                         "lat": aprsPayload.latitude,
@@ -309,8 +293,17 @@ function decodeData(dataMatch)
 
         receivedJson.received.push(newStationData);
 
-        console.log("Received JSON: ", receivedJson);
+        addStationOnMap(newStationData);
+
+        console.log("Received new station JSON: ", receivedJson);
+
+        // TODO: TEMPoraneally add station on list
+        const newStationLi = document.createElement("li");
+        newStationLi.textContent = aprsPath.callSign;
+        document.getElementById("heardStations").appendChild(newStationLi);
     }
+
+    showStationOnList();
 }
 
 /**
@@ -320,78 +313,17 @@ function decodeData(dataMatch)
 function decodeAPRSPath(aprsData)
 {
     let result = undefined;
-    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+),([A-Z0-9\-]+):(![^ ]+)\s+(.*)$/m;
-    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(![^ ]+)\s+(.*)$/;
-    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:(!|=)([^ ]+)(\s+(.*))$/
-    //const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
     const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9\-]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
 
     let matchAprs = aprsData.match(patternConent);
 
     if (matchAprs)
     {
-        const sender = matchAprs[1];     // Original sender of message
-        const swtype = matchAprs[2];     // software type???
-        const aprsPath = matchAprs[3];   // APRS Path
+        const sender = matchAprs[1];    // Original sender of message
+        const swtype = matchAprs[2];    // software type???
+        const aprsPath = matchAprs[3];  // APRS Path
         const payload = matchAprs[4];   // Payload: Compressed position, other data and message
-        //const message = matchAprs[5];    // Message
 
-        console.log("Mittente:", sender);
-        console.log("SWType:", swtype);
-        console.log("Path APRS:", aprsPath);
-        console.log("Payload:", payload);
-        let coordinate = decodeCoordinate(payload);
-        console.log("Coordinate - Latitudine: " + coordinate.latitudine + " --- Longitudine: " + coordinate.longitudine);
-        //console.log("Messaggio:", message);
-
-
-        // TODO: Sostituire il metodo decodeCoordinate con decodePayload
-        let decoded = decodePayload(payload);
-        console.log("decoded: ", decoded);
-
-
-        const senderData = stationsData.find(obj => obj.callSign === sender);
-
-        if (senderData)
-        {
-            console.log("Trovato:", senderData);
-        }
-        else
-        {
-            console.log("Non trovato");
-
-            let iconChar = decodeIcon(payload);
-            let receivedFrom = decodeAprsPath(aprsPath);
-
-            const newStation = { callSign: sender, mapPosition: { lat: coordinate.latitudine, lon: coordinate.longitudine }, icon: iconChar, from: receivedFrom };
-            stationsData.push(newStation);
-            
-            //L.marker([coordinate.latitudine, coordinate.longitudine]).addTo(map).bindPopup(sender);
-            let marker = L.marker([coordinate.latitudine, coordinate.longitudine],
-            {
-                icon: L.divIcon({
-                    className: "customMarker",
-                    html: `
-                    <div class="customMarkerContainer">
-                        <img src="./icons/icon-${iconChar}-24-24.png"><br>
-                        <span class="${receivedFrom == "" ? "customMarkerTextDirect" : "customMarkerText"}">${sender}</span>
-                    </div>`,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]  // punta del marker
-                })
-            }).addTo(map);
-            console.log(marker);
-
-            
-            const newStationLi = document.createElement("li");
-            newStationLi.textContent = sender;
-            document.getElementById("heardStations").appendChild(newStationLi);
-
-            console.log(stationsData);
-        }
-
-
-        /**********************************************/
         // New object manage
         result = 
         {
@@ -400,7 +332,6 @@ function decodeAPRSPath(aprsData)
             "from": aprsPath,
             "payload": payload
         };
-        /**********************************************/
     }
     else
     {
@@ -408,67 +339,6 @@ function decodeAPRSPath(aprsData)
     }
 
     return result;
-}
-
-function decodeCoordinate(positionData)
-{
-    //"!L9=#_QZ:va";
-    let latString = positionData.substring(2,6);
-    console.log("Latitude string:", latString);
-    
-    let sommaLat = 0;
-    const potenzaLat = latString.length - 1;
-
-    for(i=0;i<latString.length;i++)
-    {
-        sommaLat += (latString.charCodeAt(i)-33)*91**(potenzaLat-i);
-    }
-    console.log("Somma:", sommaLat);
-    let latitude = 90-(sommaLat/380926);
-    console.log("Latitudine:", latitude);
-    
-
-
-    let lonString = positionData.substring(6,10);
-    console.log("Longitude string:", lonString);
-
-    let sommaLon = 0;
-    const potenzaLon = lonString.length - 1;
-
-    for(i=0;i<lonString.length;i++)
-    {
-        sommaLon += (lonString.charCodeAt(i)-33)*91**(potenzaLon-i);
-    }
-    console.log("Somma:", sommaLon);
-    let longitude = -180+(sommaLon/190463);
-    console.log("Longitude:", longitude);
-
-    return { latitudine: latitude, longitudine: longitude };
-}
-
-function decodeIcon(positionData)
-{
-    let iconChar = positionData.charAt(positionData.length-1);
-
-    //TODO: Find a better solution :D
-    if(iconChar != 'a' && iconChar != '&' && iconChar != '#' && iconChar != '_')
-    {
-        iconChar = "default";
-    }
-
-    return iconChar;
-}
-
-function decodeAprsPath(pathAprs)
-{
-    let repeter = "";
-
-    if(pathAprs.charAt(pathAprs.length-1) == '*')
-    {
-        repeter = pathAprs.substring(0, pathAprs.length-1);
-    }
-
-    return repeter;
 }
 
 function decodePayload(payload)
@@ -505,15 +375,12 @@ function decodePayload(payload)
         console.log("Not managed data type: ", payload);
     }
 
-    return { dataType: dataType, overlay: overlay, 
-        simbleTable: simbleTable, latitude: latitude, longitude: longitude, icon: icon, 
-        direction: direction, speed: speed, altitude: altitude, compressionType: compressionType, message: message };
+    return { dataType: dataType, overlay: overlay, simbleTable: simbleTable, latitude: latitude, longitude: longitude, icon: icon, 
+             direction: direction, speed: speed, altitude: altitude, compressionType: compressionType, message: message };
 }
 
 function decodeLatitude(codedLatitude)
 {
-    //let latString = positionData.substring(2,6);
-    //console.log("Latitude string:", codedLatitude);
     let resultLatitude = 0;
     let sommaLat = 0;
     const potenzaLat = codedLatitude.length - 1;
@@ -523,16 +390,13 @@ function decodeLatitude(codedLatitude)
         sommaLat += (codedLatitude.charCodeAt(i)-33)*91**(potenzaLat-i);
     }
 
-    //console.log("Somma:", sommaLat);
     resultLatitude = 90-(sommaLat/380926);
-    //console.log("Latitudine:", latitude);
+
     return resultLatitude;
 }
 
 function decodeLongitude(codedLongitude)
 {
-    //let lonString = positionData.substring(6,10);
-    //console.log("Longitude string:", codedLongitude);
     let resultLongitude = 0;
     let sommaLon = 0;
     const potenzaLon = codedLongitude.length - 1;
@@ -541,8 +405,62 @@ function decodeLongitude(codedLongitude)
     {
         sommaLon += (codedLongitude.charCodeAt(i)-33)*91**(potenzaLon-i);
     }
-    //console.log("Somma:", sommaLon);
+
     resultLongitude = -180+(sommaLon/190463);
-    //console.log("Longitude:", longitude);
+
     return resultLongitude;
+}
+
+
+function utilityPathFrom(pathAprs)
+{
+    let repeter = "";
+
+    if(pathAprs.charAt(pathAprs.length-1) == '*')
+    {
+        repeter = pathAprs.substring(0, pathAprs.length-1);
+    }
+
+    return repeter;
+}
+
+function utilityPopUpData(stationData)
+{
+    let viewData = "Last received<br />";
+
+    const date = new Date(stationData.data[stationData.data.length-1].time);
+
+    viewData += "Time: " + date.toLocaleDateString() + "(" + date.toISOString() + ")<br />";
+
+    // TODO: Add other info
+
+    return viewData;
+}
+
+
+function addStationOnMap(stationData)
+{
+    //<img src="./icons/icon-${stationData.data[stationData.data.length-1].payload.icon}-24-24.png"><br>
+
+    L.marker([stationData.data[stationData.data.length-1].payload.lat, stationData.data[stationData.data.length-1].payload.lon],
+    {
+        icon: L.divIcon({
+            className: "customMarker",
+            html: `
+            <div class="customMarkerContainer">
+                <img src="./icons/icon-default-24-24.png"><br>
+                <span class="${stationData.data[stationData.data.length-1].from == "" ? "customMarkerTextDirect" : "customMarkerText"}">${stationData.callSign}</span>
+            </div>`,
+            iconSize: [26,41],
+            iconAnchor: [12,40],
+            popupAnchor: [0,-30]
+            // iconSize: [24, 24],
+            // iconAnchor: [12, 24]  // punta del marker
+        })
+    }).addTo(map).bindPopup(utilityPopUpData(stationData));
+}
+
+function showStationOnList()
+{
+    // TODO: Show data updated on list
 }
