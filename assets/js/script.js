@@ -1,8 +1,8 @@
 /*
  * Name          : script.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 05.10.2025
- * Revision      : 0.1.0
+ * Last modified : 06.10.2025
+ * Revision      : 0.2.0
  *
  * This file is part of : OffGridTracker project [https://github.com/bobboteck/OffGridTracker/]
  *
@@ -10,6 +10,7 @@
  * Date         Version     Modified By     Description
  * 2025-09-14   0.0.1       Roberto D'Amico First version
  * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
+ * 2025-10-06   0.2.0       Roberto D'Amico UI improvements
  * 
  * The MIT License (MIT)
  *
@@ -70,3 +71,18 @@ L.tileLayer('./tiles/{z}/{x}/{y}.png', {
 //         })
 //     }).addTo(map);
 // });
+
+const debugCheckElement = document.getElementById("debugCheck");
+debugCheckElement.addEventListener("change", () =>
+{
+    if (debugCheckElement.checked)
+    {
+        document.getElementById("debugColumn").style.display = "";
+        document.getElementById("stationsColums").classList.replace("col-5","col-2");
+    }
+    else
+    {
+        document.getElementById("debugColumn").style.display = "none";
+        document.getElementById("stationsColums").classList.replace("col-2","col-5");
+    }
+});

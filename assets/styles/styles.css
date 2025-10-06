@@ -1,0 +1,86 @@
+html, body 
+{
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Blocca lo scroll */
+}
+
+header
+{
+    height: 100px;
+    max-height: 100px;
+    background-color: #343a40;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 20px;
+}
+
+.actionsContainer
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 20px;
+}
+
+main
+{
+    height: calc(100% - 100px); /* Il resto della pagina */
+}
+
+.colonna
+{
+    height: 100%;
+    overflow: auto; /* Se serve lo scroll interno */
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+}
+
+#map
+{
+    width: 100%;
+    /*height: 100vh;*/
+    height: -webkit-fill-available;
+}
+
+.textFormat
+{
+    font-family: monospace;
+    font-size: 9pt;
+    height: -webkit-fill-available;
+}
+
+#heardStations
+{
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.customMarker
+{
+    width: auto !important;
+}
+
+.customMarkerContainer
+{
+    text-align: center;
+}
+
+.customMarkerText
+{
+    font-size: 12px;
+    text-wrap-mode: nowrap;
+    font-weight: bold
+}
+
+.customMarkerTextDirect
+{
+    font-size: 12px;
+    text-wrap-mode: nowrap;
+    font-weight: bold;
+    background-color: lightgreen;
+    padding: 1px 2px;
+    border: 1px solid blue;
+}
