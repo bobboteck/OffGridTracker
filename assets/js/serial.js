@@ -299,9 +299,9 @@ function decodeReceivedData(dataMatch)
         console.log("Received new station JSON: ", receivedJson);
 
         // TODO: TEMPoraneally add station on list
-        const newStationLi = document.createElement("li");
-        newStationLi.textContent = aprsPath.callSign;
-        document.getElementById("heardStations").appendChild(newStationLi);
+        // const newStationLi = document.createElement("li");
+        // newStationLi.textContent = aprsPath.callSign;
+        // document.getElementById("heardStations").appendChild(newStationLi);
     }
 
     showStationOnList();
@@ -464,4 +464,32 @@ function addStationOnMap(stationData)
 function showStationOnList()
 {
     // TODO: Show data updated on list
+    const listElement = document.getElementById("accordionReceived");
+    listElement.innerHTML = "";
+
+    receivedJson.received.forEach(station =>
+    {
+        const call = station.callSign;
+
+        const stationHtml = `
+<div class="accordion-item">
+    <h2 class="accordion-header" id="heading_${call}">
+        <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${call}" aria-expanded="false" aria-controls="collapse_${call}">
+        ${call}
+            <span class="badge badgeCall rounded-pill bg-danger">${station.data.length}</span>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            ${station.data.length}
+            <span class="visually-hidden">unread messages</span>
+          </span>
+        </button>
+    </h2>
+    <div id="collapse_${call}" class="accordion-collapse collapse" aria-labelledby="heading_${call}" data-bs-parent="#accordionReceived">
+        <div class="accordion-body">
+        Station data
+        </div>
+    </div>
+</div>`;
+
+        listElement.innerHTML += stationHtml;
+    })
 }

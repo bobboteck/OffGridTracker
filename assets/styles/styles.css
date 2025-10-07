@@ -84,3 +84,13 @@ main
     padding: 1px 2px;
     border: 1px solid blue;
 }
+
+.accordionButtunCall
+{
+    padding: 5px;
+}
+
+.badgeCall
+{
+    margin-bottom: 10px;
+}
