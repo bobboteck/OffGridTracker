@@ -1,14 +1,15 @@
 /*
  * Name          : serial.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 06.10.2025
- * Revision      : 0.2.0
+ * Last modified : 12.10.2025
+ * Revision      : 0.3.0
  *
  * Modification History:
  * Date         Version     Modified By     Description
  * 2025-09-14   0.0.1       Roberto D'Amico First version
  * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  * 2025-10-06   0.2.0       Roberto D'Amico UI improvements
+ * 2025-10-12   0.3.0       Roberto D'Amico UI improvements in list stations
  * 
  * The MIT License (MIT)
  *
@@ -74,6 +75,14 @@ serialConnectButton.addEventListener('click', async () =>
                 serialConnectButton.classList.add("btn-outline-success");
 
                 readUntilNotClose();
+            })
+            .catch((error) =>
+            {
+                serialConnectButton.innerText = "Connect";
+                serialConnectButton.classList.remove("btn-success");
+                serialConnectButton.classList.add("btn-danger");
+
+                alert("Serial connection error:", error);
             });
         }
         else
@@ -125,6 +134,7 @@ async function serialConnect()
     catch(error)
     {
         console.log("SerialConnect - ERROR: ", error);
+        throw error;
     }
 }
 
@@ -461,8 +471,40 @@ function addStationOnMap(stationData)
     }).addTo(map).bindPopup(utilityPopUpData(stationData));
 }
 
+
+function rsiiImage(rssiValue)
+{
+    let fileName = "";
+
+    if(rssiValue > -90)
+    {
+        fileName = "rssi-90.svg";
+    }
+    else if(rssiValue <= -90 && rssiValue > -100)
+    {
+        fileName = "rssi-100.svg";
+    }
+    else if(rssiValue <= -100 && rssiValue > -110)
+    {
+        fileName = "rssi-110.svg";
+    }
+    else if(rssiValue <= -110 && rssiValue > -120)
+    {
+        fileName = "rssi-120.svg";
+    }
+    else if(rssiValue <= -120)
+    {
+        fileName = "rssi-120.svg";
+    }
+
+    return fileName;
+}
+
+
 function showStationOnList()
 {
+    document.getElementById("stationNumber").innerText = ` (${receivedJson.received.length})`;
+
     // TODO: Show data updated on list
     const listElement = document.getElementById("accordionReceived");
     listElement.innerHTML = "";
@@ -470,22 +512,30 @@ function showStationOnList()
     receivedJson.received.forEach(station =>
     {
         const call = station.callSign;
+        const rssiValue = station.data[station.data.length-1].rssi;
+        const snrValue =  station.data[station.data.length-1].snr;
 
         const stationHtml = `
 <div class="accordion-item">
     <h2 class="accordion-header" id="heading_${call}">
         <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${call}" aria-expanded="false" aria-controls="collapse_${call}">
-        ${call}
-            <span class="badge badgeCall rounded-pill bg-danger">${station.data.length}</span>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-            ${station.data.length}
-            <span class="visually-hidden">unread messages</span>
-          </span>
+            <div class="container">
+                <div class="row">
+                    <div class="col-5">${call}</div>
+                    <div class="col-2">
+                        <span class="badge badgeCall text-bg-success">${station.data.length}</span>
+                    </div>
+                    <div class="col-2">
+                        <img src="./assets/images/${rsiiImage(rssiValue)}" alt="${rssiValue}" title="RSSI: ${rssiValue} - SNR: ${snrValue}" />
+                    </div>
+                    <div class="col-3">&nbsp;</div>
+                </div>
+            </div>
         </button>
     </h2>
     <div id="collapse_${call}" class="accordion-collapse collapse" aria-labelledby="heading_${call}" data-bs-parent="#accordionReceived">
         <div class="accordion-body">
-        Station data
+        ${station.data[station.data.length-1].payload.messagge}
         </div>
     </div>
 </div>`;

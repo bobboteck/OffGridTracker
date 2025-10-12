@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <!--
  @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- Last modified : 06.10.2025
- Revision      : 0.2.0
+ Last modified : 12.10.2025
+ Revision      : 0.3.0
 
  Modification History:
  Date         Version     Modified By     Description
  2025-09-14   0.0.1       Roberto D'Amico First version
  2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  2025-10-06   0.2.0       Roberto D'Amico UI improvements
+ 2025-10-12   0.3.0       Roberto D'Amico UI improvements in list stations
 
  The MIT License (MIT)
 
@@ -48,7 +49,7 @@
             <h1>Off Grid Tracker - LoRa APRS</h1>
             <div class="actionsContainer">
                 <div class="form-check form-switch pe-3">
-                    <input class="form-check-input" type="checkbox" id="debugCheck" checked>
+                    <input class="form-check-input switchColor" type="checkbox" id="debugCheck" checked>
                     <label class="form-check-label" for="debugCheck">Debug</label>
                 </div>
                 <div>
@@ -67,60 +68,9 @@
                     <textarea class="form-control textFormat" id="receivedData" readonly title="Serial debug"></textarea>
                 </div>
                 <div id="stationsColums" class="col-2 colonna bg-secondary text-white">
-                    Stazioni ascoltate
+                    Stazioni ascoltate <label id="stationNumber"></label>
                     <div>
-                        <ul id="heardStations"></ul>
-
-
-
-
-                        <div class="accordion" id="accordionReceived">
-
-                            <!-- <div class="accordion-item">
-                              <h2 class="accordion-header" id="headingIU0PHY-7">
-                                <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIU0PHY-7" aria-expanded="false" aria-controls="collapseIU0PHY-7">
-                                  IU0PHY-7 <span class="badge badgeCall rounded-pill bg-danger">15</span>
-                                </button>
-                              </h2>
-                              <div id="collapseIU0PHY-7" class="accordion-collapse collapse" aria-labelledby="headingIU0PHY-7" data-bs-parent="#accordionReceived">
-                                <div class="accordion-body">
-                                  <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="accordion-item">
-                              <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                  Accordion Item #2
-                                </button>
-                              </h2>
-                              <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionReceived">
-                                <div class="accordion-body">
-                                  <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="accordion-item">
-                              <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                  Accordion Item #3
-                                </button>
-                              </h2>
-                              <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionReceived">
-                                <div class="accordion-body">
-                                  <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                                </div>
-                              </div>
-                            </div> -->
-
-                          </div>
-
-
-
-
-
+                        <div class="accordion" id="accordionReceived"></div>
                     </div>
                 </div>
             </div>

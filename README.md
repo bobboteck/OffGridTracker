@@ -6,7 +6,7 @@ This is a LoRa APRS off grid Map, this application is designed to display receiv
 
 The picture below show the last version of application.
 
-![OGT-Screen-0.2.0](/misc/OGT-Screen-0.2.0.png)
+![OGT-Screen-0.2.0](/misc/OGT-Screen-0.3.0.png)
 
 You can try it, but without tails on map area, simply connect to this link [https://bobboteck.github.io/OffGridTracker/](https://bobboteck.github.io/OffGridTracker/) and connect your Gateway to your PC.
 

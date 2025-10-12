@@ -25,6 +25,12 @@ header
     padding-right: 20px;
 }
 
+.switchColor
+{
+    border-color: RGBA(var(--bs-success-rgb), var(--bs-bg-opacity, 1)) !important;
+    background-color: RGBA(var(--bs-success-rgb), var(--bs-bg-opacity, 1)) !important;
+}
+
 main
 {
     height: calc(100% - 100px); /* Il resto della pagina */
