@@ -72,6 +72,7 @@ serialConnectButton.addEventListener('click', async () =>
             {
                 serialConnectButton.innerText = "Disconnect";
                 serialConnectButton.classList.remove("btn-success");
+                serialConnectButton.classList.remove("btn-danger");
                 serialConnectButton.classList.add("btn-outline-success");
 
                 readUntilNotClose();
