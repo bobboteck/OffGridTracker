@@ -91,6 +91,16 @@ main
     border: 1px solid blue;
 }
 
+.stationContainer
+{
+    margin-top: 5px;
+}
+
+.stationBold
+{
+    font-weight: bold;
+}
+
 .accordionButtunCall
 {
     padding: 5px;

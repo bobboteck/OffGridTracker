@@ -515,6 +515,7 @@ function showStationOnList()
         const call = station.callSign;
         const rssiValue = station.data[station.data.length-1].rssi;
         const snrValue =  station.data[station.data.length-1].snr;
+        const from = station.data[station.data.length-1].from;
 
         const stationHtml = `
 <div class="accordion-item">
@@ -522,7 +523,7 @@ function showStationOnList()
         <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${call}" aria-expanded="false" aria-controls="collapse_${call}">
             <div class="container">
                 <div class="row">
-                    <div class="col-5">${call}</div>
+                    <div class="col-5 ${from === "" ? " stationBold" : ""}" style="padding:0 5px">${call}</div>
                     <div class="col-2">
                         <span class="badge badgeCall text-bg-success">${station.data.length}</span>
                     </div>
@@ -536,7 +537,8 @@ function showStationOnList()
     </h2>
     <div id="collapse_${call}" class="accordion-collapse collapse" aria-labelledby="heading_${call}" data-bs-parent="#accordionReceived">
         <div class="accordion-body">
-        ${station.data[station.data.length-1].payload.messagge}
+            <div>From: ${from}</div>
+            <div>Message: ${station.data[station.data.length-1].payload.messagge}</div>
         </div>
     </div>
 </div>`;
