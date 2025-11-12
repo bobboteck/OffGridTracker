@@ -73,6 +73,36 @@ L.tileLayer('./tiles/{z}/{x}/{y}.png', {
 //     }).addTo(map);
 // });
 
+
+/* Test per inserire una traccia nella MAPPA */
+// Sequenza di coordinate geografiche (latitudine, longitudine)
+// const traccia =
+// [
+//     [41.9028, 12.4964], // Roma centro
+//     [41.8902, 12.4922], // Colosseo
+//     // [41.8818, 12.4863], // Circo Massimo
+//     // [41.8789, 12.4768], // Trastevere
+//     // [41.8919, 12.5113]  // San Giovanni
+// ];
+
+// // Disegna la linea sulla mappa
+// const polyline = L.polyline(traccia,
+// {
+//     color: 'blue',
+//     weight: 5,
+//     opacity: 0.7,
+//     smoothFactor: 1
+// }).addTo(map);
+
+// // Aggiunge eventualmente un popup per ogni punto
+// traccia.forEach((coord, i) =>
+// {
+//     L.circleMarker(coord, { radius: 5, color: 'red' })
+//     .addTo(map)
+//     .bindPopup(`Punto ${i + 1}: ${coord[0].toFixed(4)}, ${coord[1].toFixed(4)}`);
+// });
+/**********************************************/
+
 const debugCheckElement = document.getElementById("debugCheck");
 debugCheckElement.addEventListener("change", () =>
 {

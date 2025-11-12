@@ -226,27 +226,36 @@ async function readUntilNotClose()
  * Decode all data sended via serial port from the gateway
  * @param {*} dataMatch 
  */
-function decodeReceivedData(dataMatch)
+function decodeReceivedData(dataMatch)  //TODO: Rinominare il metodo ora non indica effettivamente cosa fa
 {
+    const timeStamp = Date.now();
     const contenuto = dataMatch[1];         // Tutto quello tra <--- e / FreqErr
     const rssi = parseInt(dataMatch[2]);
     const snr = parseFloat(dataMatch[3]);
     const freqErr = parseInt(dataMatch[4]); // Il valore di FreqErr
 
-    // Decodifica mittente e path
-    const aprsPath = decodeAPRSPath(contenuto);
+    // Decodifica i dati APRS
+    const aprsData = decodeAPRSData(contenuto);
     // Decodifica il payload del messaggio ricevuto
-    const aprsPayload = decodePayload(aprsPath.payload);
+    const aprsPayload = decodePayload(aprsData.payload);
+    // Estrae il mittente del messaggio
+    const from = utilityPathFrom(aprsData.from);
 
     // Cerca il nominativo per vedere se è già presente nei dati
-    const callSignReceived = receivedJson.received.find(s=>s.callSign === aprsPath.callSign);
-
+    const callSignReceived = receivedJson.received.find(s=>s.callSign === aprsData.callSign);
+    // Se il nominativo è già presente aggiunge solo i dati nuovi, altrimenti inserisce tutte le informazioni
     if(callSignReceived)
     {
+        // Rimuove il Marker già presente nella mappa
+        removeStationOnMap(callSignReceived);
+        // Aggiunge il nuovo Marker sulla mappa
+        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, timeStamp);
+
         // Nominativo già presente, quindi aggiungere solo le informazioni nella sezione "data"
         const newData =
         {
-            "from": utilityPathFrom(aprsPath.from),
+            "from": from,
+            "distance": from === "" ? getDistanceFromLatLonInKm(aprsPayload.latitude, aprsPayload.longitude, 41.94435099682926, 12.517065247376257) : null, //TODO: La distanza deve essere dinamica!!!
             "payload":
             {
                 "lat": aprsPayload.latitude,
@@ -261,29 +270,34 @@ function decodeReceivedData(dataMatch)
             "rssi": rssi,
             "snr": snr,
             "frequencyError": freqErr,
-            "time": Date.now()
+            "marker": mapMarker,
+            "time": timeStamp
         };
 
+        // Aggiorna le informazioni nell'oggetto di persistenza
         callSignReceived.data.push(newData);
 
-        addStationOnMap(callSignReceived);
+        addStationTrackOnMap(callSignReceived);
 
-        console.log("Received new data JSON: ", receivedJson);
+        console.debug("Received new data JSON: ", receivedJson);
     }
     else
     {
-        // Nominativo non presente, inserire tutti i dati
+        // Aggiunge il marker sulla mappa
+        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, timeStamp);
+        // Nominativo non presente, crea il nuovo item con tutti i dati nell'oggetto di persistenza
         const newStationData =
         {
-            "callSign": aprsPath.callSign,
-            "swhw": aprsPath.swhw,
+            "callSign": aprsData.callSign,
+            "swhw": aprsData.swhw,
             "dataType": aprsPayload.dataType,
             "overlay": aprsPayload.overlay,
             "simbleTable": aprsPayload.simbleTable,
             "data":
             [
                 {
-                    "from": utilityPathFrom(aprsPath.from),
+                    "from": from,
+                    "distance": from === "" ? getDistanceFromLatLonInKm(aprsPayload.latitude,aprsPayload.longitude,41.94435099682926, 12.517065247376257) : null, //TODO: La distanza deve essere dinamica!!!
                     "payload":
                     {
                         "lat": aprsPayload.latitude,
@@ -298,14 +312,14 @@ function decodeReceivedData(dataMatch)
                     "rssi": rssi,
                     "snr": snr,
                     "frequencyError": freqErr,
-                    "time": Date.now()
+                    "marker": mapMarker,
+                    "time": timeStamp
                 }
             ]
         };
 
+        // Aggiunge le informazioni nell'oggetto di persistenza
         receivedJson.received.push(newStationData);
-
-        addStationOnMap(newStationData);
 
         console.log("Received new station JSON: ", receivedJson);
 
@@ -322,7 +336,7 @@ function decodeReceivedData(dataMatch)
  * Decode APRS Data
  * @param {*} aprsData 
  */
-function decodeAPRSPath(aprsData)
+function decodeAPRSData(aprsData)
 {
     let result = undefined;
     const patternConent = /^([A-Z0-9\-]+)>([A-Z0-9\-]+)(?:,([A-Z0-9\-*,]+))?:([!=].*)$/;
@@ -336,6 +350,9 @@ function decodeAPRSPath(aprsData)
         const aprsPath = matchAprs[3];  // APRS Path
         const payload = matchAprs[4];   // Payload: Compressed position, other data and message
 
+        console.log(">>> decodeAPRSData: ", aprsData);
+        console.log(">>> payload: ", payload);
+
         // New object manage
         result = 
         {
@@ -347,7 +364,7 @@ function decodeAPRSPath(aprsData)
     }
     else
     {
-        console.log("No CONTENT decode!");
+        console.debug("No CONTENT decode!");
     }
 
     return result;
@@ -423,10 +440,16 @@ function decodeLongitude(codedLongitude)
     return resultLongitude;
 }
 
-
+/**
+ * Estrae l'informazione del relay del messaggio
+ * @param {*} pathAprs Path APRS del messaggio
+ * @returns Se presente restituisce il call della stazione che ha ripetuto i lmessaggio, altrimenti stringa vuota per i messaggi diretti
+ */
 function utilityPathFrom(pathAprs)
 {
     let repeter = "";
+
+    console.log(">>> utilityPathFrom:", pathAprs);
 
     if(pathAprs.charAt(pathAprs.length-1) == '*')
     {
@@ -436,11 +459,11 @@ function utilityPathFrom(pathAprs)
     return repeter;
 }
 
-function utilityPopUpData(stationData)
+function utilityPopUpData(timeStamp)
 {
     let viewData = "Last received<br />";
 
-    const date = new Date(stationData.data[stationData.data.length-1].time);
+    const date = new Date(timeStamp);
 
     viewData += "Time: " + date.toLocaleDateString() + "(" + date.toISOString() + ")<br />";
 
@@ -450,28 +473,101 @@ function utilityPopUpData(stationData)
 }
 
 
-function addStationOnMap(stationData)
+/**
+ * Aggiunge una Stazione e i sui dati alla Mappa
+ * @param {number} latitude 
+ * @param {number} longitude 
+ * @param {string} call 
+ * @param {string} path 
+ * @param {number} time 
+ * @returns 
+ */
+function addStationOnMap(latitude, longitude, call, path, time)
 {
     //<img src="./icons/icon-${stationData.data[stationData.data.length-1].payload.icon}-24-24.png"><br>
 
-    L.marker([stationData.data[stationData.data.length-1].payload.lat, stationData.data[stationData.data.length-1].payload.lon],
+    // if(stationData.data.length > 0)
+    // {
+
+    // }
+
+    const markerAdded = L.marker([latitude, longitude],
     {
         icon: L.divIcon({
             className: "customMarker",
             html: `
             <div class="customMarkerContainer">
                 <img src="./icons/icon-default-24-24.png"><br>
-                <span class="${stationData.data[stationData.data.length-1].from == "" ? "customMarkerTextDirect" : "customMarkerText"}">${stationData.callSign}</span>
+                <span class="${path == "" ? "customMarkerTextDirect" : "customMarkerText"}">${call}</span>
             </div>`,
             iconSize: [26,41],
-            iconAnchor: [12,40],
-            popupAnchor: [0,-30]
+            iconAnchor: [40,41],
+            popupAnchor: [40,0]   //era 0,-30
             // iconSize: [24, 24],
             // iconAnchor: [12, 24]  // punta del marker
         })
-    }).addTo(map).bindPopup(utilityPopUpData(stationData));
+    }).addTo(map).bindPopup(utilityPopUpData(time));
+
+    return markerAdded;
 }
 
+/**
+ * Rimuove il Marker precedente di una Stazione già presente nella Mappa
+ * @param {*} receivedData I dati APRS ricevuti ed elaborati
+ */
+function removeStationOnMap(receivedData)
+{
+    // Verifica che l'oggetto data della stazione identificata contenga informazioni per identificare il Marker da rimuovere
+    if(receivedData.data.length > 0)
+    {
+        // Recupera dall'array dei data l'ultimo Marker inserito nella mappa
+        const oldMapMarker = receivedData.data[receivedData.data.length-1].marker;
+        // Rimuove il Marker
+        map.removeLayer(oldMapMarker);
+        // TODO: Rimuovere informazione di DEBUG
+        console.debug("Rimosso marker di: ", receivedData.callSign);
+    }
+}
+
+
+function addStationTrackOnMap(stationData)
+{
+    console.debug("+++ addStationTrackOnMap: ", stationData.callSign);
+
+    const lastLat = stationData.data[stationData.data.length-1].payload.lat;
+    const lastLon = stationData.data[stationData.data.length-1].payload.lon;
+    const prevLat = stationData.data[stationData.data.length-2].payload.lat;
+    const prevLon = stationData.data[stationData.data.length-2].payload.lon;
+
+    if(prevLat !== lastLat && prevLon !== lastLon)
+    {
+        // Sequenza di coordinate geografiche (latitudine, longitudine) per definire i punti della traccia
+        const trackSection =
+        [
+            [prevLat, prevLon],
+            [lastLat, lastLon]
+        ];
+
+        console.debug(`${stationData.callSign} === ${trackSection}`);
+
+        // Disegna la linea sulla mappa
+        const polyline = L.polyline(trackSection,
+        {
+            color: 'blue',
+            weight: 5,
+            opacity: 0.7,
+            smoothFactor: 1
+        }).addTo(map);
+
+        console.debug("+++ Aggiunto track on map per: ", stationData.callSign);
+
+        const date = new Date(stationData.data[stationData.data.length-2].time);
+
+        L.circleMarker([prevLat, prevLon], { radius: 3, color: 'red' })
+        .addTo(map)
+        .bindPopup(`<b>Path:<b> ${stationData.data[stationData.data.length-2].from}</ br>(${date.toISOString()})`);
+    }
+}
 
 function rsiiImage(rssiValue)
 {
@@ -502,6 +598,24 @@ function rsiiImage(rssiValue)
 }
 
 
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2-lat1);  // deg2rad below
+    var dLon = deg2rad(lon2-lon1); 
+    var a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+      ; 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c; // Distance in km
+    return d;
+  }
+  
+  function deg2rad(deg) {
+    return deg * (Math.PI/180)
+  }
+
 function showStationOnList()
 {
     document.getElementById("stationNumber").innerText = ` (${receivedJson.received.length})`;
@@ -530,7 +644,7 @@ function showStationOnList()
                     <div class="col-2">
                         <img src="./assets/images/${rsiiImage(rssiValue)}" alt="${rssiValue}" title="RSSI: ${rssiValue} - SNR: ${snrValue}" />
                     </div>
-                    <div class="col-3">&nbsp;</div>
+                    <div class="col-3">${from === "" ? station.data[station.data.length-1].distance.toFixed(2) : "&nbsp;"}</div>
                 </div>
             </div>
         </button>

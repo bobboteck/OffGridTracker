@@ -11,6 +11,7 @@
             [
                 {
                     "from": "received from, empty if direct",
+                    "distance": null,
                     "payload":
                     {
                         "lat": "latitude",
@@ -39,6 +40,7 @@
             [
                 {
                     "from": "",
+                    "distance": null,
                     "payload":
                     {
                         "lat": "coordinate.latitudine",
