@@ -1,8 +1,8 @@
 /*
  * Name          : script.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 12.10.2025
- * Revision      : 0.3.0
+ * Last modified : 14.11.2025
+ * Revision      : 0.4.0
  *
  * This file is part of : OffGridTracker project [https://github.com/bobboteck/OffGridTracker/]
  *
@@ -12,6 +12,7 @@
  * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  * 2025-10-06   0.2.0       Roberto D'Amico UI improvements
  * 2025-10-12   0.3.0       Roberto D'Amico UI improvements in list stations
+ * 2025-11-14   0.4.0       Roberto D'Amico Added tracking feature
  * 
  * The MIT License (MIT)
  *
@@ -97,9 +98,10 @@ L.tileLayer('./tiles/{z}/{x}/{y}.png', {
 // // Aggiunge eventualmente un popup per ogni punto
 // traccia.forEach((coord, i) =>
 // {
-//     L.circleMarker(coord, { radius: 5, color: 'red' })
+//     L.circleMarker(coord, { radius: 2, color: 'red' })
 //     .addTo(map)
-//     .bindPopup(`Punto ${i + 1}: ${coord[0].toFixed(4)}, ${coord[1].toFixed(4)}`);
+//     //.bindPopup(`Punto ${i + 1}: ${coord[0].toFixed(4)}, ${coord[1].toFixed(4)}`);
+//     .bindPopup(`<table><tr><th>Path:</th><td>IU0PHY</td></tr><tr><th>RSSI:</th><td>25</td></tr><tr><th>SNR:</th><td>25</td></tr><tr><th>Time:</th><td>14/11/2025T07:35:00Z</td></tr></table>`);
 // });
 /**********************************************/
 

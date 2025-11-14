@@ -1,8 +1,8 @@
 /*
  * Name          : serial.js
  * @author       : Roberto D'Amico (Bobboteck - IU0PHY)
- * Last modified : 12.10.2025
- * Revision      : 0.3.0
+ * Last modified : 14.11.2025
+ * Revision      : 0.4.0
  *
  * Modification History:
  * Date         Version     Modified By     Description
@@ -10,6 +10,7 @@
  * 2025-10-05   0.1.0       Roberto D'Amico Refactoring and new data structure
  * 2025-10-06   0.2.0       Roberto D'Amico UI improvements
  * 2025-10-12   0.3.0       Roberto D'Amico UI improvements in list stations
+ * 2025-11-14   0.4.0       Roberto D'Amico Added tracking feature
  * 
  * The MIT License (MIT)
  *
@@ -539,6 +540,7 @@ function addStationTrackOnMap(stationData)
     const prevLat = stationData.data[stationData.data.length-2].payload.lat;
     const prevLon = stationData.data[stationData.data.length-2].payload.lon;
 
+    // Aggiunge la traccia solo se le coordinate sono diverse. NOTA: Si potrebbero filtrare anche i mini spostamenti per non riempire la mappa di tracce inutili!
     if(prevLat !== lastLat && prevLon !== lastLon)
     {
         // Sequenza di coordinate geografiche (latitudine, longitudine) per definire i punti della traccia
@@ -563,9 +565,10 @@ function addStationTrackOnMap(stationData)
 
         const date = new Date(stationData.data[stationData.data.length-2].time);
 
-        L.circleMarker([prevLat, prevLon], { radius: 3, color: 'red' })
+        L.circleMarker([prevLat, prevLon], { radius: 2, color: 'red' })
         .addTo(map)
-        .bindPopup(`<b>Path:<b> ${stationData.data[stationData.data.length-2].from}</ br>(${date.toISOString()})`);
+        //.bindPopup(`<b>Path:<b> ${stationData.data[stationData.data.length-2].from}</ br>(${date.toISOString()})`);
+        .bindPopup(`<table><tr><th>Path:</th><td>${stationData.data[stationData.data.length-2].from}</td></tr><tr><th>RSSI:</th><td>${stationData.data[stationData.data.length-2].rssi}</td></tr><tr><th>SNR:</th><td>${stationData.data[stationData.data.length-2].snr}</td></tr><tr><th>Time:</th><td>${date.toISOString()}</td></tr></table>`);
     }
 }
 
