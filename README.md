@@ -10,6 +10,10 @@ The picture below show the last version of application.
 
 You can try it, but without tails on map area, simply connect to this link [https://bobboteck.github.io/OffGridTracker/](https://bobboteck.github.io/OffGridTracker/) and connect your Gateway to your PC.
 
+Below is an example of the new tracking functionality introduced with version 0.4.0.
+
+![OGT-Traking-Example.png](/misc/OGT-Traking-Example.png)
+
 ## How to use it
 
 In this section I will explain how to use the application.
