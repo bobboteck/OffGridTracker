@@ -50,7 +50,7 @@
             <h1>Off Grid Tracker - LoRa APRS</h1>
             <div class="actionsContainer">
                 <div class="form-check form-switch pe-3">
-                    <input class="form-check-input switchColor" type="checkbox" id="debugCheck" checked>
+                    <input class="form-check-input switchColor" type="checkbox" id="debugCheck">
                     <label class="form-check-label" for="debugCheck">Debug</label>
                 </div>
                 <div>
@@ -62,13 +62,13 @@
         <!-- Corpo pagina diviso in 3 colonne -->
         <main class="container-fluid">
             <div class="row h-100">
-                <div class="col-7 colonna bg-white">
+                <div id="mapColumns" class="col-9 colonna bg-white">
                     <div id="map"></div>
                 </div>
-                <div id="debugColumn" class="col-3 colonna bg-light">
+                <div id="debugColumns" class="col-3 colonna bg-light" style="display:none;">
                     <textarea class="form-control textFormat" id="receivedData" readonly title="Serial debug"></textarea>
                 </div>
-                <div id="stationsColums" class="col-2 colonna bg-secondary text-white">
+                <div id="stationsColumns" class="col-3 colonna bg-secondary text-white">
                     Stazioni ascoltate <label id="stationNumber"></label>
                     <div class="stationContainer">
                         <div class="accordion" id="accordionReceived"></div>

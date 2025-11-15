@@ -54,68 +54,20 @@ L.tileLayer('./tiles/{z}/{x}/{y}.png', {
   errorTileUrl: '', // opzionale: tile di fallback
 }).addTo(map);
 
-// // Aggiunta marker al click
-// map.on('click', function (e) {
-//   const { lat, lng } = e.latlng;
-//   //L.marker([lat, lng]).addTo(map).bindPopup(`Lat: ${lat.toFixed(5)}<br>Lng: ${lng.toFixed(5)}`).openPopup();
-//   //L.marker([41.826727500879436, 12.563196001323092]).addTo(map).bindPopup(`Lat: ${(41.826727500879436).toFixed(5)}<br>Lng: ${(12.563196001323092).toFixed(5)}`).openPopup();
-
-//     L.marker([lat, lng], {
-//         icon: L.divIcon({
-//             className: "custom-div-icon",
-//             html: `
-//             <div style="text-align: center;">
-//                 <img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"><br>
-//                 <span style="font-size: 12px;">sender</span>
-//             </div>`,
-//             iconSize: [25, 41],
-//             iconAnchor: [12, 41]  // punta del marker
-//         })
-//     }).addTo(map);
-// });
-
-
-/* Test per inserire una traccia nella MAPPA */
-// Sequenza di coordinate geografiche (latitudine, longitudine)
-// const traccia =
-// [
-//     [41.9028, 12.4964], // Roma centro
-//     [41.8902, 12.4922], // Colosseo
-//     // [41.8818, 12.4863], // Circo Massimo
-//     // [41.8789, 12.4768], // Trastevere
-//     // [41.8919, 12.5113]  // San Giovanni
-// ];
-
-// // Disegna la linea sulla mappa
-// const polyline = L.polyline(traccia,
-// {
-//     color: 'blue',
-//     weight: 5,
-//     opacity: 0.7,
-//     smoothFactor: 1
-// }).addTo(map);
-
-// // Aggiunge eventualmente un popup per ogni punto
-// traccia.forEach((coord, i) =>
-// {
-//     L.circleMarker(coord, { radius: 2, color: 'red' })
-//     .addTo(map)
-//     //.bindPopup(`Punto ${i + 1}: ${coord[0].toFixed(4)}, ${coord[1].toFixed(4)}`);
-//     .bindPopup(`<table><tr><th>Path:</th><td>IU0PHY</td></tr><tr><th>RSSI:</th><td>25</td></tr><tr><th>SNR:</th><td>25</td></tr><tr><th>Time:</th><td>14/11/2025T07:35:00Z</td></tr></table>`);
-// });
-/**********************************************/
-
+// Hendler of debug toggle change the view of page elements
 const debugCheckElement = document.getElementById("debugCheck");
 debugCheckElement.addEventListener("change", () =>
 {
     if (debugCheckElement.checked)
     {
-        document.getElementById("debugColumn").style.display = "";
-        document.getElementById("stationsColums").classList.replace("col-5","col-2");
+        document.getElementById("mapColumns").classList.replace("col-9","col-7");
+        document.getElementById("debugColumns").style.display = "";
+        document.getElementById("stationsColumns").classList.replace("col-3","col-2");
     }
     else
     {
-        document.getElementById("debugColumn").style.display = "none";
-        document.getElementById("stationsColums").classList.replace("col-2","col-5");
+        document.getElementById("mapColumns").classList.replace("col-7","col-9");
+        document.getElementById("debugColumns").style.display = "none";
+        document.getElementById("stationsColumns").classList.replace("col-2","col-3");
     }
 });
