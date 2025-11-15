@@ -250,7 +250,7 @@ function decodeReceivedData(dataMatch)  //TODO: Rinominare il metodo ora non ind
         // Rimuove il Marker già presente nella mappa
         removeStationOnMap(callSignReceived);
         // Aggiunge il nuovo Marker sulla mappa
-        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, timeStamp);
+        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, rssi, snr, timeStamp);
 
         // Nominativo già presente, quindi aggiungere solo le informazioni nella sezione "data"
         const newData =
@@ -285,7 +285,7 @@ function decodeReceivedData(dataMatch)  //TODO: Rinominare il metodo ora non ind
     else
     {
         // Aggiunge il marker sulla mappa
-        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, timeStamp);
+        const mapMarker = addStationOnMap(aprsPayload.latitude, aprsPayload.longitude, aprsData.callSign, from, rssi, snr, timeStamp);
         // Nominativo non presente, crea il nuovo item con tutti i dati nell'oggetto di persistenza
         const newStationData =
         {
@@ -322,12 +322,7 @@ function decodeReceivedData(dataMatch)  //TODO: Rinominare il metodo ora non ind
         // Aggiunge le informazioni nell'oggetto di persistenza
         receivedJson.received.push(newStationData);
 
-        console.log("Received new station JSON: ", receivedJson);
-
-        // TODO: TEMPoraneally add station on list
-        // const newStationLi = document.createElement("li");
-        // newStationLi.textContent = aprsPath.callSign;
-        // document.getElementById("heardStations").appendChild(newStationLi);
+        console.debug("Received new station JSON: ", receivedJson);
     }
 
     showStationOnList();
@@ -460,15 +455,11 @@ function utilityPathFrom(pathAprs)
     return repeter;
 }
 
-function utilityPopUpData(timeStamp)
+function utilityPopUpData(from, rssi, snr, timeStamp)
 {
-    let viewData = "Last received<br />";
-
     const date = new Date(timeStamp);
 
-    viewData += "Time: " + date.toLocaleDateString() + "(" + date.toISOString() + ")<br />";
-
-    // TODO: Add other info
+    const viewData = `<table><tr><th>Path:</th><td>${from}</td></tr><tr><th>RSSI:</th><td>${rssi}</td></tr><tr><th>SNR:</th><td>${snr}</td></tr><tr><th>Time:</th><td>${date.toISOString()}</td></tr></table>`;
 
     return viewData;
 }
@@ -483,15 +474,8 @@ function utilityPopUpData(timeStamp)
  * @param {number} time 
  * @returns 
  */
-function addStationOnMap(latitude, longitude, call, path, time)
+function addStationOnMap(latitude, longitude, call, path, rssi, snr, time)
 {
-    //<img src="./icons/icon-${stationData.data[stationData.data.length-1].payload.icon}-24-24.png"><br>
-
-    // if(stationData.data.length > 0)
-    // {
-
-    // }
-
     const markerAdded = L.marker([latitude, longitude],
     {
         icon: L.divIcon({
@@ -503,11 +487,9 @@ function addStationOnMap(latitude, longitude, call, path, time)
             </div>`,
             iconSize: [26,41],
             iconAnchor: [40,41],
-            popupAnchor: [40,0]   //era 0,-30
-            // iconSize: [24, 24],
-            // iconAnchor: [12, 24]  // punta del marker
+            popupAnchor: [1,-39]
         })
-    }).addTo(map).bindPopup(utilityPopUpData(time));
+    }).addTo(map).bindPopup(utilityPopUpData(path, rssi, snr,time));
 
     return markerAdded;
 }
@@ -530,11 +512,12 @@ function removeStationOnMap(receivedData)
     }
 }
 
-
+/**
+ * Aggiunge sulla mappa la linea che collega la posizione precedente all'attuale e il circle con popup nella posizione precedente
+ * @param {*} stationData 
+ */
 function addStationTrackOnMap(stationData)
 {
-    console.debug("+++ addStationTrackOnMap: ", stationData.callSign);
-
     const lastLat = stationData.data[stationData.data.length-1].payload.lat;
     const lastLon = stationData.data[stationData.data.length-1].payload.lon;
     const prevLat = stationData.data[stationData.data.length-2].payload.lat;
@@ -561,13 +544,11 @@ function addStationTrackOnMap(stationData)
             smoothFactor: 1
         }).addTo(map);
 
-        console.debug("+++ Aggiunto track on map per: ", stationData.callSign);
-
+        // Converte il timestamp in data
         const date = new Date(stationData.data[stationData.data.length-2].time);
 
         L.circleMarker([prevLat, prevLon], { radius: 2, color: 'red' })
         .addTo(map)
-        //.bindPopup(`<b>Path:<b> ${stationData.data[stationData.data.length-2].from}</ br>(${date.toISOString()})`);
         .bindPopup(`<table><tr><th>Path:</th><td>${stationData.data[stationData.data.length-2].from}</td></tr><tr><th>RSSI:</th><td>${stationData.data[stationData.data.length-2].rssi}</td></tr><tr><th>SNR:</th><td>${stationData.data[stationData.data.length-2].snr}</td></tr><tr><th>Time:</th><td>${date.toISOString()}</td></tr></table>`);
     }
 }
