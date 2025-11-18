@@ -14,6 +14,7 @@
  * 2025-10-12   0.3.0       Roberto D'Amico UI improvements in list stations
  * 2025-11-14   0.4.0       Roberto D'Amico Added tracking feature
  * 2025-11-17   0.5.0       Roberto D'Amico Unified js files
+ * 2025-11-18   0.6.0       Roberto D'Amico Always highlights the stations listened to, at least once, direct
  * 
  * The MIT License (MIT)
  *
@@ -503,7 +504,7 @@ function utilityPathFrom(pathAprs)
 {
     let repeter = "";
 
-    console.log(">>> utilityPathFrom:", pathAprs);
+    console.debug(">>> utilityPathFrom:", pathAprs);
 
     if(pathAprs.charAt(pathAprs.length-1) == '*')
     {
@@ -660,18 +661,30 @@ function deg2rad(deg) {
 
 function showStationOnList()
 {
+    // Update the stations received counter
     document.getElementById("stationNumber").innerText = ` (${receivedJson.received.length})`;
 
-    // TODO: Show data updated on list
+    // Get element that contain list
     const listElement = document.getElementById("accordionReceived");
     listElement.innerHTML = "";
-
+    // Show data updated on list for each Station received and decoded
     receivedJson.received.forEach(station =>
     {
         const call = station.callSign;
         const rssiValue = station.data[station.data.length-1].rssi;
         const snrValue =  station.data[station.data.length-1].snr;
         const from = station.data[station.data.length-1].from;
+        
+        // Count the time station was recaived directly
+        let directCounter = 0;
+        for (const item of station.data)
+        {
+            // Check if direct received and update counter
+            if (item.from === "")
+            {
+                directCounter++;
+            }
+        }
 
         const stationHtml = `
 <div class="accordion-item">
@@ -679,7 +692,7 @@ function showStationOnList()
         <button class="accordion-button accordionButtunCall collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${call}" aria-expanded="false" aria-controls="collapse_${call}">
             <div class="container">
                 <div class="row">
-                    <div class="col-5 ${from === "" ? " stationBold" : ""}" style="padding:0 5px">${call}</div>
+                    <div class="col-5 ${directCounter > 0 ? " stationBold" : ""}" style="padding:0 5px">${call}</div>
                     <div class="col-2">
                         <span class="badge badgeCall text-bg-success">${station.data.length}</span>
                     </div>
@@ -695,6 +708,7 @@ function showStationOnList()
         <div class="accordion-body">
             <div>From: ${from}</div>
             <div>Message: ${station.data[station.data.length-1].payload.messagge}</div>
+            <div>Direct received: ${directCounter}/${station.data.length}</div>
         </div>
     </div>
 </div>`;
