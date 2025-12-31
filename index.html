@@ -13,6 +13,7 @@
  2025-11-14   0.4.0       Roberto D'Amico Added tracking feature
  2025-11-17   0.5.0       Roberto D'Amico Unified js files
  2025-11-18   0.6.0       Roberto D'Amico Always highlights the stations listened to, at least once, direct
+ 2025-12-31   0.7.0       Roberto D'Amico Add settings panel and save info to local storage
 
  The MIT License (MIT)
 
@@ -51,6 +52,13 @@
         <header>
             <h1>Off Grid Tracker - LoRa APRS</h1>
             <div class="actionsContainer">
+                <div class="pe-3">
+                    <a class="btn btn-outline-success" data-bs-toggle="offcanvas" href="#offcanvasSettings" role="button" aria-controls="Settings">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
+                        </svg>
+                    </a>
+                </div>
                 <div class="form-check form-switch pe-3">
                     <input class="form-check-input switchColor" type="checkbox" id="debugCheck">
                     <label class="form-check-label" for="debugCheck">Debug</label>
@@ -60,6 +68,40 @@
                 </div>
             </div>
         </header>
+
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSettings" aria-labelledby="Settings box">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasSettingsLabel">Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div>
+                    Settings of application was stored in the Local Storage of browser.
+                </div>
+                <div class="mt-3">
+                    <div class="offCanvasSubTitleContainer">
+                        <h6>Center of Map</h6>
+                        <button id="currentMapCenter" type="button" class="btn btn-outline-success btn-sm mb-2">Use current Map center</button>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="number" class="form-control" id="mapCenterLatSetting" placeholder="">
+                        <label for="mapCenterLatSetting">Latitude</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="number" class="form-control" id="mapCenterLonSetting" placeholder="">
+                        <label for="mapCenterLonSetting">Longitude</label>
+                    </div>
+                    <h6>This Station</h6>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="callsignSetting" placeholder="">
+                        <label for="callsignSetting">Callsign</label>
+                    </div>
+                    <div>
+                        <button id="saveSettings" class="btn btn-success float-end" aria-label="Save settings" type="button">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Corpo pagina diviso in 3 colonne -->
         <main class="container-fluid">

@@ -15,6 +15,7 @@
  * 2025-11-14   0.4.0       Roberto D'Amico Added tracking feature
  * 2025-11-17   0.5.0       Roberto D'Amico Unified js files
  * 2025-11-18   0.6.0       Roberto D'Amico Always highlights the stations listened to, at least once, direct
+ * 2025-12-31   0.7.0       Roberto D'Amico Add settings panel and save info to local storage
  * 
  * The MIT License (MIT)
  *
@@ -42,10 +43,14 @@
 
 const serialConnectButton = document.getElementById("serial_connect");
 const debugCheckElement = document.getElementById("debugCheck");
+const settingMapCenterLat = document.getElementById("mapCenterLatSetting");
+const settingMapCenterLon = document.getElementById("mapCenterLonSetting");
+const settingCallsign = document.getElementById("callsignSetting");
 
 const baudRate = 115200;
 const receivedJson = { "received": [] };
 
+let appConfiguration = { call: "", mapCenter: { lat: 41.8986, lng: 12.4931 }};
 let connected = false;
 let port;
 let reader;
@@ -66,12 +71,15 @@ else
     alert("Sorry, but your browser not support 'Web Serial API', try with Chrome, Edge or other browse that support it");
 }
 
-
-
 //#region MAP Inizialize
+appConfiguration = appSettingsLoad();
+settingMapCenterLat.value = appConfiguration.mapCenter.lat;
+settingMapCenterLon.value = appConfiguration.mapCenter.lng;
+settingCallsign.value = appConfiguration.call;
+
 // Initialize the Map
 const map = L.map('map', {
-  center: [41.8986, 12.4931], // TODO: Ora è su ROMA centro +o-, trovare unmodo alternativo di posizionamento
+  center: [appConfiguration.mapCenter.lat, appConfiguration.mapCenter.lng],
   zoom: 10,
   zoomControl: true,
   attributionControl: true
@@ -165,6 +173,42 @@ navigator.serial.addEventListener("connect", (event) =>
 navigator.serial.addEventListener("disconnect", (event) => 
 {
     console.log("Event disconnect device");
+});
+
+/**
+ * Update the fields that contain the center position of Map at the Start, but not save it!
+ */
+document.getElementById("currentMapCenter").addEventListener("click", () =>
+{
+    const center = map.getCenter();
+
+    appConfiguration.mapCenter.lat = center.lat.toFixed(4);
+    appConfiguration.mapCenter.lng = center.lng.toFixed(4);
+
+    settingMapCenterLat.value = appConfiguration.mapCenter.lat;
+    settingMapCenterLon.value = appConfiguration.mapCenter.lng;
+});
+
+/**
+ * Save application settings to local storage
+ */
+document.getElementById("saveSettings").addEventListener("click", () =>
+{
+    if(appConfiguration.mapCenter.lat !== settingMapCenterLat.value)
+    {
+        appConfiguration.mapCenter.lat = settingMapCenterLat.value;
+    }
+
+    if(appConfiguration.mapCenter.lng !== settingMapCenterLon.value)
+    {
+        appConfiguration.mapCenter.lng = settingMapCenterLon.value;
+    }
+
+    appConfiguration.call = settingCallsign.value;
+
+    appSettingsSave();
+
+    bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSettings')).hide();
 });
 //#endregion
 
@@ -715,4 +759,14 @@ function showStationOnList()
 
         listElement.innerHTML += stationHtml;
     })
+}
+
+function appSettingsSave()
+{
+    localStorage.setItem("OffGridTracker-Settings", JSON.stringify(appConfiguration));
+}
+
+function appSettingsLoad()
+{
+    return JSON.parse(localStorage.getItem("OffGridTracker-Settings"));
 }

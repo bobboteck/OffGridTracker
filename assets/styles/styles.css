@@ -111,3 +111,10 @@ main
 {
     margin-bottom: 10px;
 }
+
+.offCanvasSubTitleContainer
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
